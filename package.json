@@ -96,6 +96,14 @@
   "files": [
     "dist"
   ],
+  "repository": {
+  "type": "git",
+  "url": "git+https://github.com/blcklab/omnimatrix.git"
+  },
+  "homepage": "https://github.com/blcklab/omnimatrix#readme",
+  "bugs": {
+    "url": "https://github.com/blcklab/omnimatrix/issues"
+  },
   "sideEffects": false,
   "author": "Avelurs Tinio",
   "license": "MIT"
