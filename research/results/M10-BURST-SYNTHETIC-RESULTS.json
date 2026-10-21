@@ -1,0 +1,61 @@
+{
+  "schema": "OMNIMATRIX_M10_RENDERED_BURST_V1",
+  "source": "deterministic_synthetic_rendered_images",
+  "realCameraEvidence": false,
+  "technique": "Three different corruption locations (each frame has one out of 12 DATA cells recolored). Exact header/geometry preserved; registered independently before majority vote.",
+  "caveat": "Not an estimate of probability of phone scanning; persistent blur and screen moire are untested.",
+  "results": [
+    {
+      "bytes": 4096,
+      "S": 112,
+      "pixels": 1168,
+      "singleFrameResults": [
+        {
+          "frame": 1,
+          "recovered": false,
+          "code": "ECC_UNRECOVERABLE"
+        },
+        {
+          "frame": 2,
+          "recovered": false,
+          "code": "ECC_UNRECOVERABLE"
+        },
+        {
+          "frame": 3,
+          "recovered": false,
+          "code": "ECC_UNRECOVERABLE"
+        }
+      ],
+      "burstRecovered": true,
+      "disputedCells": 3618,
+      "unanimousCells": 10854,
+      "ambiguousCells": 0
+    },
+    {
+      "bytes": 8192,
+      "S": 160,
+      "pixels": 1728,
+      "singleFrameResults": [
+        {
+          "frame": 1,
+          "recovered": false,
+          "code": "ECC_UNRECOVERABLE"
+        },
+        {
+          "frame": 2,
+          "recovered": false,
+          "code": "ECC_UNRECOVERABLE"
+        },
+        {
+          "frame": 3,
+          "recovered": false,
+          "code": "ECC_UNRECOVERABLE"
+        }
+      ],
+      "burstRecovered": true,
+      "disputedCells": 7449,
+      "unanimousCells": 22347,
+      "ambiguousCells": 0
+    }
+  ]
+}

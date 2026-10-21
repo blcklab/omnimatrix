@@ -1,0 +1,32 @@
+{
+  "schema": "OMNIMATRIX_M9_SYNTHETIC_V1",
+  "environment": "Node.js generated raster tests; not real photographs",
+  "createdAt": "2026-10-17T17:50:31.714Z",
+  "results": [
+    {
+      "test": "generated S112 full-frame 4096 bytes",
+      "status": "passed",
+      "regionAttempts": 1,
+      "correctedSymbols": 0,
+      "elapsedMs": 154,
+      "source": "generated_raster"
+    },
+    {
+      "test": "generated S160 full-frame 8192 bytes",
+      "status": "passed",
+      "regionAttempts": 1,
+      "correctedSymbols": 0,
+      "elapsedMs": 203,
+      "source": "generated_raster"
+    },
+    {
+      "test": "synthetic clutter outside centered S96",
+      "status": "passed",
+      "fullFrameFailed": true,
+      "regionAttempts": 2,
+      "correctedSymbols": 0,
+      "elapsedMs": 81,
+      "source": "generated_raster"
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "name": "@blcklab/omnimatrix",
+  "version": "0.1.0-alpha.22",
+  "type": "module",
+  "description": "Offline optical code with multisymbol transfers, typed payloads, safe actions, signatures and encryption",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "npm run build && npm test && npm run verify:package",
+    "test": "node --test test/*.test.mjs",
+    "demo": "node scripts/demo.mjs",
+    "experiment": "node scripts/experiment.mjs",
+    "capture:serve": "node scripts/capture-server.mjs",
+    "capture:fixture": "npm run build && node scripts/make-capture-fixture.mjs",
+    "capture:report": "node scripts/capture-report.mjs",
+    "verify:package": "node scripts/verify-package.mjs",
+    "demo:frame": "npm run build && node scripts/frame-demo.mjs",
+    "demo:ecc": "npm run build && node scripts/ecc-demo.mjs",
+    "demo:hybrid": "npm run build && node scripts/hybrid-demo.mjs",
+    "demo:optical": "npm run build && node scripts/payload-image-demo.mjs",
+    "benchmark:chromatic": "npm run build && node scripts/chromatic-benchmark.mjs",
+    "demo:auto": "npm run build && node scripts/automatic-demo.mjs",
+    "benchmark:camera": "npm run build && node scripts/m9-camera-benchmark.mjs",
+    "demo:burst": "npm run build && node scripts/m10-burst-benchmark.mjs",
+    "benchmark:confidence": "npm run build && node scripts/m11-confidence-benchmark.mjs",
+    "benchmark:quality": "npm run build && node scripts/m12-quality-benchmark.mjs",
+    "prepack": "npm run build && npm run verify:package",
+    "release:check": "npm run check && npm run verify:compatibility && npm run verify:browser && npm run verify:policy && node scripts/verify-release.mjs",
+    "verify:release": "node scripts/verify-release.mjs",
+    "verify:compatibility": "node scripts/verify-compatibility.mjs",
+    "verify:browser": "node scripts/verify-browser-graph.mjs",
+    "verify:policy": "node scripts/verify-publication-policy.mjs",
+    "keys:generate": "node scripts/m19-keygen.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./geometry": {
+      "types": "./dist/geometry/index.d.ts",
+      "import": "./dist/geometry/index.js"
+    },
+    "./optical": {
+      "types": "./dist/optical/index.d.ts",
+      "import": "./dist/optical/index.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol/index.d.ts",
+      "import": "./dist/protocol/index.js"
+    },
+    "./renderers": {
+      "types": "./dist/renderers/index.d.ts",
+      "import": "./dist/renderers/index.js"
+    },
+    "./research": {
+      "types": "./dist/research/index.d.ts",
+      "import": "./dist/research/index.js"
+    },
+    "./package.json": "./package.json",
+    "./payloads": {
+      "types": "./dist/payloads/index.d.ts",
+      "import": "./dist/payloads/index.js"
+    },
+    "./envelopes": {
+      "types": "./dist/envelopes/index.d.ts",
+      "import": "./dist/envelopes/index.js"
+    },
+    "./signatures": {
+      "types": "./dist/signatures/index.d.ts",
+      "import": "./dist/signatures/index.js"
+    },
+    "./encryption": {
+      "types": "./dist/encryption/index.d.ts",
+      "import": "./dist/encryption/index.js"
+    },
+    "./actions": {
+      "types": "./dist/actions/index.d.ts",
+      "import": "./dist/actions/index.js"
+    },
+    "./transfers": {
+      "types": "./dist/transfers/index.d.ts",
+      "import": "./dist/transfers/index.js"
+    }
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "author": "Avelurs Tinio",
+  "license": "MIT"
+}

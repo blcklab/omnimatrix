@@ -1,0 +1,58 @@
+{
+  "schema": "OMNIMATRIX_M11_SYNTHETIC_CONFIDENCE_V1",
+  "source": "deterministic_synthetic_pixel_blends",
+  "realCameraEvidence": false,
+  "physicalScanningValidated": false,
+  "scenario": "Original pixels vs. weakly wrong RGB blends across differently affected cell groups; two wrong low-margin votes per affected cell, one strong correct vote.",
+  "limits": "Cannot repair stable common-mode blur, screen moire, low sensor resolution or all-frames high-confidence errors. Cannot estimate field success rates.",
+  "results": [
+    {
+      "payloadBytes": 4096,
+      "S": 112,
+      "renderPx": 1168,
+      "singleFrames": [
+        {
+          "recovered": false,
+          "code": "ECC_UNRECOVERABLE"
+        },
+        {
+          "recovered": false,
+          "code": "ECC_UNRECOVERABLE"
+        },
+        {
+          "recovered": false,
+          "code": "ECC_UNRECOVERABLE"
+        }
+      ],
+      "majorityRecovered": false,
+      "confidenceRecovered": true,
+      "weightedConflictCells": 3618,
+      "disputedCells": 3618,
+      "crcAndEccVerified": true
+    },
+    {
+      "payloadBytes": 8192,
+      "S": 160,
+      "renderPx": 1728,
+      "singleFrames": [
+        {
+          "recovered": false,
+          "code": "ECC_UNRECOVERABLE"
+        },
+        {
+          "recovered": false,
+          "code": "ECC_UNRECOVERABLE"
+        },
+        {
+          "recovered": false,
+          "code": "ECC_UNRECOVERABLE"
+        }
+      ],
+      "majorityRecovered": false,
+      "confidenceRecovered": true,
+      "weightedConflictCells": 7449,
+      "disputedCells": 7449,
+      "crcAndEccVerified": true
+    }
+  ]
+}

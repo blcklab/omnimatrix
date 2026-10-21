@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>OmniMatrix M8 — Local Capture Lab</title>
+<style>
+:root {color-scheme: dark; font-family: system-ui, sans-serif; background:#10141c;color:#e9f0fa}
+*{box-sizing:border-box} body{margin:0 auto;max-width:1240px;padding:24px}
+h1{margin:0 0 8px;font-size:28px}p{line-height:1.5;color:#abb6c7}
+fieldset{border:1px solid #303a49;border-radius:12px;padding:16px;margin:14px 0;display:flex;gap:16px;flex-wrap:wrap;align-items:end}
+label{font-size:13px;display:grid;gap:6px;color:#d7e1ef}
+input,select,button{font:inherit;padding:9px 12px;border-radius:8px;border:1px solid #475366;background:#202936;color:white}
+button{cursor:pointer}button:hover{background:#344052}button:disabled{opacity:.4;cursor:default}
+#photo{display:block;width:100%;height:auto;border:1px solid #303a49;border-radius:12px;cursor:crosshair;background:#252d3a}
+#photo-wrap{max-width:960px;margin:0 auto;}
+#steps{font-weight:600;color:#bfe2ff} .status{padding:10px 14px;border:1px solid #303a49;border-radius:9px;margin:12px 0;background:#19202c}
+#report{white-space:pre-wrap;overflow-wrap:anywhere;max-height:500px;overflow:auto;background:#151b26;padding:14px;border-radius:12px;border:1px solid #303a49;font-size:12px}
+small{color:#aab6c5} .warning{color:#ffd18f}
+</style>
+</head>
+<body>
+<h1>OmniMatrix — M8 Capture Lab</h1>
+<p>Research-only, completely local photo-analysis interface. M8 adds experimental no-click detection for one isolated, near-frontal HYBRID symbol on a light background. Manual four-point registration remains available for harder photographs. No upload, server-side photo processing, or production scanning claims. Camera photos remain in your browser.</p>
+<fieldset>
+<label>Camera photograph (PNG/JPEG/WebP via browser)<input id="file" type="file" accept="image/*"/></label>
+<label>Symbol S<select id="size"><option>96</option><option selected>112</option><option>128</option><option>144</option><option>160</option></select></label>
+<label>Palette<select id="palette"><option value="DENSE_8">DENSE_8</option><option value="RELIABLE_4">RELIABLE_4</option></select></label>
+<label>Capture tag<input id="tag" maxlength="80" placeholder="Trial A"/></label>
+<label>Camera device<input id="device" maxlength="80" placeholder="phone make/model"/></label>
+<label>Media<select id="media"><option value="unknown">Unknown</option><option value="printed">Printed</option><option value="screen">Screen</option><option value="synthetic">Synthetic</option></select></label>
+<label>Outer symbol diameter (mm)<input id="diameter" type="number" min="1" max="1000" step="0.1" placeholder="75"/></label>
+<label>Distance (cm)<input id="distance" type="number" min="1" max="1000" step="1" placeholder="20"/></label>
+<label>Lighting<input id="lighting" maxlength="80" placeholder="daylight / office / dim"/></label>
+<button id="fixture">Load S96 research pattern</button>
+<button id="payload-fixture">Load M6 4 KiB payload fixture</button>
+<button id="payload-fixture-8k">Load M8 8 KiB automatic fixture</button>
+<button id="reset">Reset points</button>
+<label><span>Fine registration</span><input id="refine" type="checkbox" checked /> Refine from reserved markers</label>
+<label>Cell sampling<select id="aggregation"><option value="MEAN">MEAN (M6 baseline)</option><option value="MEDIAN">MEDIAN (outlier-resistant)</option></select></label>
+<label>Color calibration<select id="calibration-mode"><option value="GLOBAL">GLOBAL (M6 baseline)</option><option value="LOCAL">LOCAL (spatial pilots)</option></select></label>
+</fieldset>
+<div class="status"><span id="steps">Choose a photograph, then use Auto-detect or mark the reference points.</span><br/><small>Mark four perimeter points in order (clockwise in *symbol* axes): <b>1. primary notch at +X</b> (wide white gap), <b>2. +Y</b> (quarter-turn clockwise from primary), <b>3. −X</b>, <b>4. −Y</b>. The secondary narrow notch is around +120°. If the image is mirrored, do not reverse the click order: the registration routine will explicitly reject reversed winding; un-mirror the image first. The point must be at the CENTER of the black outer rim (radius S+9), not at the outermost white edge.</small></div>
+<div id="photo-wrap"><canvas id="photo" width="840" height="840" role="img" aria-label="Annotated camera photo"></canvas></div>
+<fieldset>
+<span id="center-label">Optional center mark: not set</span>
+<button id="center-mode" disabled>Mark center</button>
+<button id="measure" disabled>Measure known research pattern</button>
+<button id="decode-payload" disabled>Decode with manual points (M8)</button>
+<button id="detect-auto" disabled>Auto-detect rim (M8)</button>
+<button id="decode-auto" disabled>Auto-detect & decode payload (M8)</button>
+<button id="save-payload" disabled>Download recovered bytes</button>
+<button id="download" disabled>Download JSON report</button>
+</fieldset>
+<p class="warning"><b>Automatic detection is experimental:</b> it supports one roughly circular, near-frontal code on a light quiet zone, and it requires a CRC-valid optical header. Use the manual four-point workflow for difficult photos. <b>For manual decoding, four approximate rim marks are required.</b> The lab can then recover S/palette from a CRC-valid optical header and refine the perspective transform using reserved calibration, header and alignment features. It does not find symbols automatically in arbitrary photos. Data cells are used only for post-refinement evaluation, never to tune alignment. Use <b>Measure known research pattern</b> only for old M1 fixtures. To recover M5/M6 encoded bytes, use <b>Decode real payload (M7)</b>; its result is independently validated by RS and CRC-32. M7 calibration controls are optional experiments; try both and report failures as well as successes. No method is proven optimal for phone photographs. No production camera-decoding reliability has been established.</p>
+<pre id="report" aria-live="polite">No measurement yet.</pre>
+<script type="module">
+import {buildLayout,rgbaToRaster,homographyFromCardinalPoints,measureAssisted,visibleProjection,mapProjective,idealRasterCardinalPoints,decodeHybridRasterAssisted,detectHybridRaster,decodeHybridRasterAutomatic} from '../dist/index.js';
+const $=(id)=>document.getElementById(id);
+const canvas=$('photo'),ctx=canvas.getContext('2d',{willReadFrequently:true});
+let original=null,raster=null,anchors=[],center=null,centerMode=false,lastReport=null,decodedBytes=null,filename='',isFixture=false,isGenerated=false,loadedFixtureS=96;
+const steps=['Primary wide notch (+X)','+Y rim (90° clockwise)','−X rim (opposite primary)','−Y rim (270° clockwise)'];
+function status(){ $('center-label').textContent=center?`Optional center mark: (${center.x.toFixed(1)}, ${center.y.toFixed(1)})`:'Optional center mark: not set'; $('steps').textContent= !original?'Choose a photograph, then Auto-detect or mark reference points.':anchors.length<4?`Point ${anchors.length+1} of 4: ${steps[anchors.length]}`:isFixture?'Built-in reference aligned automatically. Choose the research measurement or M6 payload decoder.':'Rim points available. Choose manual measurement/decoding, or try automatic detection.'; $('measure').disabled=anchors.length!==4; $('decode-payload').disabled=anchors.length!==4; $('detect-auto').disabled=!original; $('decode-auto').disabled=!original; $('center-mode').disabled=anchors.length!==4; $('download').disabled=!lastReport; $('save-payload').disabled=!decodedBytes; }
+function redraw(reg=null){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(original) ctx.drawImage(original,0,0);
+  const unit=Math.min(canvas.width,canvas.height)/850;
+  ctx.lineWidth=Math.max(2,unit*3); ctx.font=`${Math.max(13,unit*22)}px system-ui`;
+  anchors.forEach((p,i)=>{ctx.strokeStyle='#ffce56';ctx.fillStyle='#ffce56';ctx.beginPath();ctx.arc(p.x,p.y,Math.max(5,unit*9),0,Math.PI*2);ctx.stroke();ctx.fillText(String(i+1),p.x+unit*11,p.y-unit*12);});
+  if(reg){
+    const layout=buildLayout(Number($('size').value),$('palette').value);
+    const preview=visibleProjection(layout,reg,2500);
+    ctx.fillStyle='rgba(95,226,255,.42)';
+    for(const p of preview)ctx.fillRect(p.x-1,p.y-1,2,2);
+    const p=mapProjective(reg,0,0);
+    if(p){ctx.strokeStyle='#ff81a9';ctx.beginPath();ctx.arc(p.x,p.y,Math.max(10,unit*15),0,2*Math.PI);ctx.stroke();}
+  }
+  if(center){ctx.fillStyle='#ff81a9';ctx.beginPath();ctx.arc(center.x,center.y,Math.max(4,unit*6),0,2*Math.PI);ctx.fill();}
+}
+async function load(blob,name,fixture=false,fixtureS=96,generated=fixture){
+  let img;
+  try {img=await createImageBitmap(blob,{imageOrientation:'from-image'});}catch(e){$('report').textContent='Cannot open image: '+e.message;return;}
+  if(img.width*img.height>24_000_000){$('report').textContent='Image exceeds 24 megapixel research safety limit; downsample a copy locally.';img.close();return;}
+  original=img;filename=name;isFixture=fixture;isGenerated=generated;loadedFixtureS=fixtureS;canvas.width=img.width;canvas.height=img.height;ctx.drawImage(img,0,0);
+  const raw=ctx.getImageData(0,0,img.width,img.height);
+  raster=rgbaToRaster(img.width,img.height,raw.data);
+  anchors=[];center=null;centerMode=false;lastReport=null;decodedBytes=null;
+  // M1b.1: Only the bundled, programmatically generated fixture has a known
+  // exact transform. Do NOT apply this shortcut to actual camera photographs.
+  $('size').disabled=fixture;
+  $('palette').disabled=fixture;
+  if (fixture) {
+    anchors=idealRasterCardinalPoints(fixtureS,img.width,img.height).map(p=>({...p}));
+    center={x:img.width/2,y:img.height/2};
+  }
+  $('report').textContent=fixture
+    ? 'Built-in synthetic fixture aligned. Use research measure for S96 pattern or Decode payload for M6 fixture.'
+    : isGenerated?'Generated rotated 8 KiB fixture loaded. Click Auto-detect & decode payload (M8); no manual points required.':'Photo loaded. Try automatic rim detection or mark four approximate rim points for assisted decoding.';
+  redraw();status();
+}
+$('file').addEventListener('change',async(e)=>{const f=e.target.files?.[0];if(f)await load(f,f.name);});
+$('fixture').addEventListener('click',async()=>{ $('size').value='96';$('palette').value='DENSE_8';const res=await fetch('../research/fixtures/OMX-S96-reference.png'); if(!res.ok)throw new Error('Reference PNG missing. Run npm run capture:fixture');await load(await res.blob(),'OMX-S96-reference.png',true,96);});
+$('payload-fixture').addEventListener('click',async()=>{ $('size').value='112';$('palette').value='DENSE_8';const res=await fetch('../research/fixtures/OMX-M6-S112-4096-PAYLOAD.png'); if(!res.ok)throw new Error('M6 payload PNG missing. Run npm run demo:optical');await load(await res.blob(),'OMX-M6-S112-4096-PAYLOAD.png',true,112);});
+$('payload-fixture-8k').addEventListener('click',async()=>{ $('size').value='160';$('palette').value='DENSE_8';const res=await fetch('../research/fixtures/OMX-M8-S160-8192-AUTO.png');if(!res.ok)throw new Error('M8 payload PNG missing. Run npm run demo:auto');await load(await res.blob(),'OMX-M8-S160-8192-AUTO.png',false,160,true);});
+$('reset').addEventListener('click',()=>{anchors=[];center=null;centerMode=false;lastReport=null;decodedBytes=null;redraw();status();});
+$('center-mode').addEventListener('click',()=>{centerMode=true;$('steps').textContent='Click the CENTER of the concentric bullseye (optional QA marker).';});
+canvas.addEventListener('click',(e)=>{
+ if(!original)return;
+ const bounds=canvas.getBoundingClientRect();const x=(e.clientX-bounds.left)*canvas.width/bounds.width,y=(e.clientY-bounds.top)*canvas.height/bounds.height;
+ if(centerMode){center={x,y};centerMode=false;}else if(anchors.length<4){anchors.push({x,y});}else {return;}
+ lastReport=null;decodedBytes=null;redraw();status();
+});
+$('measure').addEventListener('click',()=>{
+ decodedBytes=null;
+ try{
+  const initialS=Number($('size').value),initialPalette=$('palette').value;
+  const analysis=measureAssisted(raster,anchors,initialS,initialPalette,{refine:$('refine').checked});
+  if(analysis.identification.status==='HEADER_CONFLICT')throw new Error('Conflicting CRC-valid optical headers. Adjust the four marks and retry.');
+  const {effectiveS:S,effectivePalette:palette}=analysis;
+  if(![...$('size').options].some(o=>Number(o.value)===S)){
+    const opt=document.createElement('option');opt.textContent=String(S);opt.value=String(S);$('size').appendChild(opt);
+  }
+  // Reflect the validated symbol metadata, rather than continuing with a wrong grid.
+  $('size').value=String(S); $('palette').value=palette;
+  const {registration:reg,result,refinedPoints}=analysis;
+  const p=result.projectedCenter;
+  const centerErrorPx=center&&p?Math.hypot(center.x-p.x,center.y-p.y):null;
+  const warnings=[...analysis.identification.warnings];
+  if(analysis.identification.detected && (initialS!==S||initialPalette!==palette))
+    warnings.push(`Wrong selection corrected from ${initialS}/${initialPalette} to ${S}/${palette} using a CRC-valid optical header.`);
+  if(analysis.identification.status==='NO_HEADER')
+    warnings.push('No validated optical header was found; using the manually selected S/palette. Results are not self-identified.');
+  lastReport={schema:'OMNIMATRIX_M1B_MEASUREMENT_V1',source:isGenerated?'generated_fixture':'user_selected_image',imageName:filename,imageWidth:raster.width,imageHeight:raster.height,tag:$('tag').value,device:$('device').value,media:isGenerated?'synthetic':$('media').value,diameterMm:Number($('diameter').value)||null,distanceCm:Number($('distance').value)||null,lighting:$('lighting').value,
+     specDraft:'M0.1',S,palette,selectedS:initialS,selectedPalette:initialPalette,registered:true,automaticDetection:false,assistedHeaderIdentification:analysis.identification.status==='OK',realPayloadRecovery:false,
+     identification:analysis.identification,warnings,registrationRefined:analysis.refined,
+     cardinalPoints:anchors.map(p=>({...p})),refinedCardinalPoints:refinedPoints,
+     initialRegistration:analysis.initialRegistration.h,initialOpticalScore:analysis.initialOpticalScore,finalOpticalScore:analysis.finalOpticalScore,
+     optionalCenter:center,centerErrorPx,registration:reg.h,expectedDataCells:analysis.expectedDataCells,...result};
+  $('report').textContent=JSON.stringify(lastReport,null,2);redraw(reg);status();
+  $('steps').textContent= `Measured ${S}/${palette}: ${(result.sample.accuracy*100).toFixed(2)}% data-pattern cell classification, ${result.sample.errors} errors; ${result.header.status}; ${analysis.identification.status==='OK'?'header-identified':'no valid header'}.`;
+ }catch(e){lastReport=null;$('report').textContent='Measurement failed: '+e.message;status();}
+});
+$('detect-auto').addEventListener('click',()=>{
+ decodedBytes=null;
+ try{
+  const found=detectHybridRaster(raster);
+  anchors=found.points.map(p=>({...p})); center={...found.center};
+  lastReport={schema:'OMNIMATRIX_M8_AUTO_ACQUISITION_V1',status:'OK',imageName:filename,
+    imageWidth:raster.width,imageHeight:raster.height,automaticDetection:true,
+    realPayloadRecovery:false,detected:found.identification.detected,
+    rimScore:found.rimScore,notchScore:found.notchScore,
+    rotationRadians:found.rotationRadians,rimRadiusPx:found.rimRadiusPx,
+    limitations:found.limitations,cardinalPoints:anchors};
+  redraw();status();$('report').textContent=JSON.stringify(lastReport,null,2);
+  $('steps').textContent='Automatic rim acquisition passed a CRC-validated optical header. Try Auto-detect & decode payload or manual measurement.';
+ }catch(e){lastReport={schema:'OMNIMATRIX_M8_AUTO_ACQUISITION_V1',status:'FAILED',automaticDetection:false,
+    realPayloadRecovery:false,imageName:filename,errorCode:e.code??null,error:String(e.message??e)};
+    $('report').textContent=JSON.stringify(lastReport,null,2);status();
+    $('steps').textContent='Automatic detection failed. The manual rim-point workflow remains available.';}
+});
+function performDecode(automatic){
+ const samplingStrategy={sampleAggregation:$('aggregation').value,calibrationMode:$('calibration-mode').value};
+ try {
+  const result=automatic
+    ?decodeHybridRasterAutomatic(raster,{...samplingStrategy})
+    :decodeHybridRasterAssisted(raster,anchors,{refine:$('refine').checked,...samplingStrategy});
+  decodedBytes=result.decoded.payload.slice();
+  const details=result.decoded;
+  const {registration,refinedPoints}=result;
+  if (![...$('size').options].some(o=>Number(o.value)===details.S)){
+    const opt=document.createElement('option');opt.textContent=String(details.S);opt.value=String(details.S);$('size').appendChild(opt);
+  }
+  $('size').value=String(details.S);$('palette').value=details.palette;
+  if(automatic){anchors=result.detection.points.map(p=>({...p}));center={...result.detection.center};}
+  const preview=Array.from(decodedBytes.subarray(0,32),b=>b.toString(16).padStart(2,'0')).join('');
+  lastReport={schema:'OMNIMATRIX_M8_PAYLOAD_IMAGE_DECODE_V1',status:'OK',source:isGenerated?'generated_fixture':'user_selected_image',
+    imageName:filename,imageWidth:raster.width,imageHeight:raster.height,media:isGenerated?'synthetic':$('media').value,
+    specDraft:'M0.1',automaticDetection:automatic,assistedHeaderIdentification:!automatic,realPayloadRecovery:true,
+    samplingStrategy,S:details.S,palette:details.palette,ecc:details.ecc,mask:details.mask,payloadBytes:details.payload.length,
+    correctedSymbols:details.correctedSymbols,correctedBlocks:details.correctedBlocks,
+    dataCellCount:result.sampling.dataSamples,headerTracks:result.sampling.validHeaderTracks,
+    diagnostics:result.sampling,registrationRefined:result.registrationRefined,
+    initialOpticalScore:result.initialOpticalScore,finalOpticalScore:result.finalOpticalScore,
+    cardinalPoints:anchors.map(p=>({...p})),refinedCardinalPoints:refinedPoints,
+    registration:registration.h,identification:result.identification,
+    detection:automatic?result.detection:null,payloadPreviewHex:preview,
+    payloadOutput:'Use Download recovered bytes for full exact binary; not included in JSON report.'};
+  $('report').textContent=JSON.stringify(lastReport,null,2);redraw(registration);status();
+  $('steps').textContent=`M8 ${automatic?'automatic':'assisted'}: recovered ${details.payload.length} bytes, corrected ${details.correctedSymbols} RS bytes, verified OMD1 CRC-32.`;
+ }catch(e){
+  decodedBytes=null;
+  lastReport={schema:'OMNIMATRIX_M8_PAYLOAD_IMAGE_DECODE_V1',status:'FAILED',
+   source:isGenerated?'generated_fixture':'user_selected_image',imageName:filename,
+   imageWidth:raster?.width??null,imageHeight:raster?.height??null,
+   media:isGenerated?'synthetic':$('media').value,device:$('device').value,
+   diameterMm:Number($('diameter').value)||null,distanceCm:Number($('distance').value)||null,
+   lighting:$('lighting').value,tag:$('tag').value,
+   automaticDetection:automatic,realPayloadRecovery:false,samplingStrategy,
+   cardinalPoints:anchors.map(p=>({...p})),errorCode:e.code??null,error:String(e.message??e)};
+  $('report').textContent=JSON.stringify(lastReport,null,2);
+  status();
+  $('steps').textContent='Payload decode failed. Download the JSON failure report; try manual alignment or another sampling strategy.';
+ }
+}
+$('decode-payload').addEventListener('click',()=>performDecode(false));
+$('decode-auto').addEventListener('click',()=>performDecode(true));
+$('save-payload').addEventListener('click',()=>{
+ if (!decodedBytes)return;
+ const blob=new Blob([decodedBytes],{type:'application/octet-stream'});
+ const url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download='omnimatrix-recovered.bin';link.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+$('download').addEventListener('click',()=>{
+ if(!lastReport)return;
+ const blob=new Blob([JSON.stringify(lastReport,null,2)+'\n'],{type:'application/json'});
+ const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`omnimatrix-m1b-${Date.now()}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+redraw();status();
+</script>
+</body>
+</html>

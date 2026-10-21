@@ -1,0 +1,157 @@
+{
+  "schema": "OMNIMATRIX_M7_SYNTHETIC_CHROMATIC_V1",
+  "source": "generated_raster_only",
+  "realCameraEvidence": false,
+  "format": "M0.1",
+  "S": 112,
+  "size": 1184,
+  "payloadBytes": 4096,
+  "palette": "DENSE_8",
+  "description": "Gradient and impulsive-noise stress cases alter ONLY the internal colored field while keeping optical headers, bullseye and perimeter untouched. Scores are specific to these controlled transforms.",
+  "results": [
+    {
+      "case": "pristine",
+      "mode": "GLOBAL_MEAN",
+      "cellErrors": 0,
+      "payloadRecovered": true,
+      "correctedSymbols": 0,
+      "lowConfidenceCells": 0,
+      "error": null
+    },
+    {
+      "case": "pristine",
+      "mode": "GLOBAL_MEDIAN",
+      "cellErrors": 0,
+      "payloadRecovered": true,
+      "correctedSymbols": 0,
+      "lowConfidenceCells": 0,
+      "error": null
+    },
+    {
+      "case": "pristine",
+      "mode": "LOCAL_MEAN",
+      "cellErrors": 0,
+      "payloadRecovered": true,
+      "correctedSymbols": 0,
+      "lowConfidenceCells": 0,
+      "error": null
+    },
+    {
+      "case": "pristine",
+      "mode": "LOCAL_MEDIAN",
+      "cellErrors": 0,
+      "payloadRecovered": true,
+      "correctedSymbols": 0,
+      "lowConfidenceCells": 0,
+      "error": null
+    },
+    {
+      "case": "spatial_gradient_100",
+      "mode": "GLOBAL_MEAN",
+      "cellErrors": 1156,
+      "payloadRecovered": false,
+      "correctedSymbols": null,
+      "lowConfidenceCells": 3795,
+      "error": "Error locator has invalid roots"
+    },
+    {
+      "case": "spatial_gradient_100",
+      "mode": "GLOBAL_MEDIAN",
+      "cellErrors": 1155,
+      "payloadRecovered": false,
+      "correctedSymbols": null,
+      "lowConfidenceCells": 3794,
+      "error": "Error locator has invalid roots"
+    },
+    {
+      "case": "spatial_gradient_100",
+      "mode": "LOCAL_MEAN",
+      "cellErrors": 0,
+      "payloadRecovered": true,
+      "correctedSymbols": 0,
+      "lowConfidenceCells": 0,
+      "error": null
+    },
+    {
+      "case": "spatial_gradient_100",
+      "mode": "LOCAL_MEDIAN",
+      "cellErrors": 0,
+      "payloadRecovered": true,
+      "correctedSymbols": 0,
+      "lowConfidenceCells": 0,
+      "error": null
+    },
+    {
+      "case": "impulse_02_low_contrast",
+      "mode": "GLOBAL_MEAN",
+      "cellErrors": 611,
+      "payloadRecovered": false,
+      "correctedSymbols": null,
+      "lowConfidenceCells": 1166,
+      "error": "Error locator has invalid roots"
+    },
+    {
+      "case": "impulse_02_low_contrast",
+      "mode": "GLOBAL_MEDIAN",
+      "cellErrors": 0,
+      "payloadRecovered": true,
+      "correctedSymbols": 0,
+      "lowConfidenceCells": 0,
+      "error": null
+    },
+    {
+      "case": "impulse_02_low_contrast",
+      "mode": "LOCAL_MEAN",
+      "cellErrors": 583,
+      "payloadRecovered": false,
+      "correctedSymbols": null,
+      "lowConfidenceCells": 1166,
+      "error": "Error locator has invalid roots"
+    },
+    {
+      "case": "impulse_02_low_contrast",
+      "mode": "LOCAL_MEDIAN",
+      "cellErrors": 0,
+      "payloadRecovered": true,
+      "correctedSymbols": 0,
+      "lowConfidenceCells": 0,
+      "error": null
+    },
+    {
+      "case": "impulse_08_low_contrast",
+      "mode": "GLOBAL_MEAN",
+      "cellErrors": 2206,
+      "payloadRecovered": false,
+      "correctedSymbols": null,
+      "lowConfidenceCells": 3630,
+      "error": "Error locator has invalid roots"
+    },
+    {
+      "case": "impulse_08_low_contrast",
+      "mode": "GLOBAL_MEDIAN",
+      "cellErrors": 22,
+      "payloadRecovered": true,
+      "correctedSymbols": 25,
+      "lowConfidenceCells": 0,
+      "error": null
+    },
+    {
+      "case": "impulse_08_low_contrast",
+      "mode": "LOCAL_MEAN",
+      "cellErrors": 2548,
+      "payloadRecovered": false,
+      "correctedSymbols": null,
+      "lowConfidenceCells": 4498,
+      "error": "Error locator has invalid roots"
+    },
+    {
+      "case": "impulse_08_low_contrast",
+      "mode": "LOCAL_MEDIAN",
+      "cellErrors": 22,
+      "payloadRecovered": true,
+      "correctedSymbols": 25,
+      "lowConfidenceCells": 0,
+      "error": null
+    }
+  ]
+}
